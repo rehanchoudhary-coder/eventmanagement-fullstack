@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Local Libraries — Demo (single file)</title>
+  <script>tailwind = { config: { theme: { extend: { colors: { primary: '#4F46E5' } } } } }</script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .hidden-section { display:none; }
+    .active-nav { background: rgba(79,70,229,0.08); border-radius: 6px; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-800">
+
+  <!-- HEADER -->
+  <header class="bg-white sticky top-0 z-40 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <a href="#" class="flex items-center gap-3" data-nav="home">
+        <div class="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center font-bold">LL</div>
+        <div>
+          <div class="text-lg font-semibold leading-none">Local Libraries</div>
+          <div class="text-xs text-gray-500">Search · Reserve · Manage</div>
+        </div>
+      </a>
+
+      <nav id="mainNav" class="flex items-center gap-2 text-sm">
+        <button class="px-3 py-2 nav-link" data-nav="home">Home</button>
+        <button class="px-3 py-2 nav-link" data-nav="category">Category</button>
+        <button class="px-3 py-2 nav-link" data-nav="wishlist">Wishlist</button>
+        <button class="px-3 py-2 nav-link" data-nav="about">About</button>
+        <button class="px-3 py-2 nav-link" data-nav="contact">Contact</button>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <form id="searchForm" class="hidden sm:flex items-center gap-2 bg-gray-100 rounded-lg px-2 py-1">
+          <input id="globalSearch" aria-label="search" class="bg-transparent outline-none text-sm" placeholder="Search books, authors..." />
+          <button id="searchBtn" type="button" class="text-sm px-3 py-1 rounded-md bg-primary text-white">Search</button>
+        </form>
+
+        <button id="openLogin" class="px-3 py-2 border rounded-md text-sm">Login</button>
+        <button id="openSignup" class="px-3 py-2 bg-primary text-white rounded-md text-sm">Sign up</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- PAGES (sections) -->
+  <main class="max-w-6xl mx-auto p-6">
+    <!-- HOME -->
+    <section id="home" class="page-section">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <aside class="lg:col-span-1 glass p-4 rounded-xl shadow-sm">
+          <h3 class="text-sm font-semibold text-gray-700">Filters & Quick actions</h3>
+          <div class="mt-3 space-y-3">
+            <input id="filterInput" placeholder="Title, author or ISBN" class="w-full rounded-md p-2 border border-gray-200" />
+            <select id="availability" class="w-full rounded-md p-2 border border-gray-200">
+              <option value="any">Any availability</option>
+              <option value="available">Available now</option>
+            </select>
+            <div class="flex gap-2">
+              <button id="reserveBtn" class="flex-1 px-3 py-2 bg-primary text-white rounded-md">Reserve</button>
+              <button id="advancedBtn" class="flex-1 px-3 py-2 border rounded-md">Advanced</button>
+            </div>
+          </div>
+        </aside>
+
+        <section class="lg:col-span-2">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-2xl font-bold">Home</h2>
+              <p class="text-sm text-gray-500">Featured this week</p>
+            </div>
+            <button class="text-sm px-3 py-2 border rounded-md" data-nav="category">Browse all</button>
+          </div>
+
+          <div id="featuredGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+          <footer class="mt-6 text-xs text-gray-500">Use the ❤ to save an item — saved to your browser.</footer>
+        </section>
+      </div>
+    </section>
+
+    <!-- CATEGORY -->
+    <section id="category" class="page-section hidden-section">
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-2xl font-bold">Category</h1>
+        <div class="text-sm text-gray-500">Select a category to view books</div>
+      </div>
+
+      <div id="categoryGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-6"></div>
+      <div id="categoryBooks" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- WISHLIST -->
+    <section id="wishlist" class="page-section hidden-section">
+      <h1 class="text-2xl font-bold mb-3">Your Wishlist</h1>
+      <div id="wishlistContainer" class="bg-white rounded-xl p-4 shadow min-h-[150px]"></div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="page-section hidden-section">
+      <h1 class="text-2xl font-bold">About Local Libraries</h1>
+      <p class="mt-3 text-gray-600">A modern web interface demo for searching, reserving and managing library books. Built with accessibility and simplicity in mind.</p>
+
+      <section class="mt-6 bg-white p-4 rounded-xl shadow">
+        <h3 class="font-semibold">Design goals</h3>
+        <ul class="list-disc list-inside mt-2 text-sm text-gray-600">
+          <li>Separate visible pages (implemented client-side) for Home, Category, Wishlist, About and Contact</li>
+          <li>Small JS layer for login & wishlist (localStorage)</li>
+          <li>Readable hierarchy and mobile-friendly tap targets</li>
+        </ul>
+      </section>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="page-section hidden-section">
+      <h1 class="text-2xl font-bold">Contact us</h1>
+      <form id="contactForm" class="mt-4 bg-white p-4 rounded-xl shadow space-y-3">
+        <input id="name" placeholder="Your name" class="w-full p-2 border rounded-md" />
+        <input id="email" placeholder="Email" class="w-full p-2 border rounded-md" />
+        <textarea id="message" placeholder="Message" class="w-full p-2 border rounded-md h-28"></textarea>
+        <div class="flex justify-end"><button type="submit" class="px-4 py-2 bg-primary text-white rounded-md">Send</button></div>
+      </form>
+      <div id="contactMsg" class="mt-3 text-sm text-green-600"></div>
+    </section>
+  </main>
+
+  <!-- SIGNUP / LOGIN MODALS -->
+  <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl w-full max-w-md p-6">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold">Login</h3>
+        <button id="closeLogin" class="text-gray-500">✕</button>
+      </div>
+      <p class="text-sm text-gray-500 mt-2">Demo credentials: <code>demo / demo123</code></p>
+      <form id="loginForm" class="mt-4 space-y-3">
+        <input id="loginUser" placeholder="Username or email" class="w-full p-2 border rounded-md" required />
+        <input id="loginPass" placeholder="Password" type="password" class="w-full p-2 border rounded-md" required />
+        <div class="flex gap-2">
+          <button type="submit" class="flex-1 px-4 py-2 bg-primary text-white rounded-md">Sign in</button>
+          <button id="toSignup" type="button" class="flex-1 px-4 py-2 border rounded-md">Sign up</button>
+        </div>
+      </form>
+      <div id="loginMsg" class="mt-3 text-sm text-red-500"></div>
+    </div>
+  </div>
+
+  <div id="signupModal" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl w-full max-w-md p-6">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold">Sign up</h3>
+        <button id="closeSignup" class="text-gray-500">✕</button>
+      </div>
+      <form id="signupForm" class="mt-4 space-y-3">
+        <input id="signupName" placeholder="Full name" class="w-full p-2 border rounded-md" required />
+        <input id="signupEmail" placeholder="Email" class="w-full p-2 border rounded-md" required />
+        <input id="signupPass" placeholder="Password" type="password" class="w-full p-2 border rounded-md" required />
+        <div class="flex gap-2">
+          <button type="submit" class="flex-1 px-4 py-2 bg-primary text-white rounded-md">Create account</button>
+          <button id="toLogin" type="button" class="flex-1 px-4 py-2 border rounded-md">Login</button>
+        </div>
+      </form>
+      <div id="signupMsg" class="mt-3 text-sm text-green-600"></div>
+    </div>
+  </div>
+
+  <footer class="mt-12 bg-white border-t">
+    <div class="max-w-6xl mx-auto p-6 flex flex-col md:flex-row justify-between gap-4 text-sm text-gray-600">
+      <div>© Local Libraries • 2025</div>
+      <div class="flex gap-4">
+        <button class="hover:underline" data-nav="about">About</button>
+        <button class="hover:underline" data-nav="contact">Contact</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPT: demo data + UI logic -->
+  <script>
+    // Demo data
+    const demoBooks = [
+      {id:'b1', title:'A Brief History of Time', author:'Stephen Hawking', cover:'https://picsum.photos/seed/11/400/600', copies:3},
+      {id:'b2', title:'Clean Code', author:'Robert C. Martin', cover:'https://picsum.photos/seed/21/400/600', copies:2},
+      {id:'b3', title:'The Pragmatic Programmer', author:'Andrew Hunt', cover:'https://picsum.photos/seed/31/400/600', copies:4},
+      {id:'b4', title:"You Don't Know JS", author:'Kyle Simpson', cover:'https://picsum.photos/seed/41/400/600', copies:1}
+    ];
+    const categories = [
+      {id:'c1', name:'Science', desc:'Physics, Astronomy'},
+      {id:'c2', name:'Programming', desc:'Software, Web'},
+      {id:'c3', name:'Design', desc:'UI/UX, Graphics'},
+      {id:'c4', name:'History', desc:'World, India'}
+    ];
+
+    // Simple localStorage wishlist helpers
+    function getWishlist(){ try { return JSON.parse(localStorage.getItem('wishlist')||'[]'); } catch(e){ return []; } }
+    function saveWishlist(w){ localStorage.setItem('wishlist', JSON.stringify(w)); }
+    function toggleWishlist(id){ let w=getWishlist(); if(w.includes(id)) w = w.filter(x=>x!==id); else w.push(id); saveWishlist(w); renderFeatured(); renderWishlist(); }
+
+    // Render functions
+    function renderFeatured(){
+      const grid = document.getElementById('featuredGrid'); grid.innerHTML = '';
+      demoBooks.forEach(b=>{
+        const card = document.createElement('article'); card.className='bg-white rounded-xl p-4 shadow hover:shadow-md transition';
+        card.innerHTML = `
+          <img src="${b.cover}" alt="cover" class="w-full h-44 object-cover rounded-md" />
+          <h3 class="font-semibold mt-3">${b.title}</h3>
+          <p class="text-xs text-gray-500">${b.author}</p>
+          <div class="mt-3 flex items-center justify-between">
+            <div class="text-sm text-gray-600">${b.copies} copies</div>
+            <div class="flex gap-2">
+              <button data-id="${b.id}" class="reserveBtn px-3 py-1 border rounded-md text-sm">Reserve</button>
+              <button data-id="${b.id}" class="detailsBtn px-3 py-1 rounded-md text-sm bg-gray-100">Details</button>
+              <button data-id="${b.id}" class="wishBtn px-2 py-1 rounded-md text-sm">${ getWishlist().includes(b.id) ? '❤' : '♡' }</button>
+            </div>
+          </div>`;
+        grid.appendChild(card);
+      });
+      document.querySelectorAll('.wishBtn').forEach(btn=> btn.onclick = ()=> toggleWishlist(btn.dataset.id));
+      document.querySelectorAll('.reserveBtn').forEach(btn=> btn.onclick = ()=> alert('Reserve clicked (demo) — please login to reserve'));
+      document.querySelectorAll('.detailsBtn').forEach(btn=> btn.onclick = ()=> alert('Details for '+btn.dataset.id));
+    }
+
+    function renderCategories(){
+      const g = document.getElementById('categoryGrid'); g.innerHTML = '';
+      categories.forEach(c=>{
+        const a = document.createElement('button'); a.className='block bg-white p-4 rounded-xl shadow hover:scale-[1.01] transition text-left';
+        a.innerHTML = `<div class="font-semibold">${c.name}</div><div class="text-xs text-gray-500 mt-1">${c.desc}</div>`;
+        a.onclick = ()=> renderCategoryBooks(c.id);
+        g.appendChild(a);
+      });
+    }
+
+    function renderCategoryBooks(catId){
+      const cont = document.getElementById('categoryBooks'); cont.innerHTML = '';
+      // demo shows all books (normally filter by category)
+      demoBooks.forEach(b=>{
+        const card = document.createElement('div'); card.className='bg-white p-4 rounded-xl shadow';
+        card.innerHTML = `
+          <img src="${b.cover}" class="w-full h-44 object-cover rounded-md"/><div class="mt-2 font-semibold">${b.title}</div><div class="text-xs text-gray-500">${b.author}</div>
+          <div class="mt-2 flex justify-between"><button data-id="${b.id}" class="addWish px-3 py-1 border rounded-md">❤ Wishlist</button><button class="px-3 py-1 border rounded-md">Reserve</button></div>`;
+        cont.appendChild(card);
+      });
+      document.querySelectorAll('.addWish').forEach(btn=> btn.onclick = ()=>{ const id = btn.dataset.id; let w=getWishlist(); if(!w.includes(id)) w.push(id); saveWishlist(w); renderWishlist(); alert('Added to wishlist'); });
+    }
+
+    function renderWishlist(){
+      const container = document.getElementById('wishlistContainer'); const w = getWishlist();
+      if(w.length===0){ container.innerHTML = '<div class="text-sm text-gray-500">No items yet — add books using the ❤ button on Home or Category.</div>'; return; }
+      container.innerHTML = '';
+      w.forEach(id => {
+        const b = demoBooks.find(x=>x.id===id); if(!b) return;
+        const row = document.createElement('div'); row.className='grid grid-cols-12 gap-4 items-center py-3 border-b';
+        row.innerHTML = `<img src="${b.cover}" class="col-span-2 rounded-md" /><div class="col-span-8"><div class="font-semibold">${b.title}</div><div class="text-xs text-gray-500">${b.author}</div></div><div class="col-span-2 text-right"><button data-id="${b.id}" class="removeBtn px-3 py-1 border rounded-md">Remove</button></div>`;
+        container.appendChild(row);
+      });
+      document.querySelectorAll('.removeBtn').forEach(btn=> btn.onclick = ()=> { let w=getWishlist(); w = w.filter(x=>x!==btn.dataset.id); saveWishlist(w); renderWishlist(); renderFeatured(); });
+    }
+
+    // Navigation (client-side)
+    function showSection(name){
+      document.querySelectorAll('.page-section').forEach(s=> s.classList.add('hidden-section'));
+      const el = document.getElementById(name); if(el) el.classList.remove('hidden-section');
+      // highlight nav
+      document.querySelectorAll('.nav-link').forEach(n=> n.classList.remove('active-nav'));
+      document.querySelectorAll('[data-nav]').forEach(b=>{ if(b.dataset.nav === name) b.classList.add('active-nav'); });
+      // update hash
+      history.replaceState(null, '', '#'+name);
+    }
+
+    // Event wiring
+    document.addEventListener('DOMContentLoaded', ()=>{
+      renderFeatured(); renderCategories(); renderWishlist();
+      // nav buttons
+      document.querySelectorAll('.nav-link, [data-nav]').forEach(btn=>{
+        btn.addEventListener('click', e=>{
+          const nav = btn.dataset.nav;
+          if(nav){ showSection(nav); }
+        });
+      });
+      // initial from hash or default home
+      const start = location.hash ? location.hash.replace('#','') : 'home';
+      showSection(start);
+
+      // search
+      document.getElementById('searchBtn').addEventListener('click', ()=>{
+        const q = document.getElementById('globalSearch').value.trim().toLowerCase();
+        if(!q) return alert('Enter a search term');
+        const found = demoBooks.filter(b=> b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q));
+        if(found.length===0) return alert('No results in demo data');
+        // show results in Home Grid
+        const grid = document.getElementById('featuredGrid'); grid.innerHTML='';
+        found.forEach(b=> { const card = document.createElement('article'); card.className='bg-white rounded-xl p-4 shadow'; card.innerHTML = `<img src="${b.cover}" class="w-full h-44 object-cover rounded-md"/><h3 class="font-semibold mt-3">${b.title}</h3><p class="text-xs text-gray-500">${b.author}</p>`; grid.appendChild(card); });
+        showSection('home');
+      });
+
+      // contact form demo
+      document.getElementById('contactForm').addEventListener('submit', (ev)=>{ ev.preventDefault(); document.getElementById('contactMsg').textContent='Thanks — message received (demo).'; ev.target.reset(); });
+
+      // modals
+      const loginModal = document.getElementById('loginModal'), signupModal = document.getElementById('signupModal');
+      document.getElementById('openLogin').addEventListener('click', ()=> { loginModal.classList.remove('hidden'); });
+      document.getElementById('closeLogin').addEventListener('click', ()=> { loginModal.classList.add('hidden'); });
+      document.getElementById('openSignup').addEventListener('click', ()=> { signupModal.classList.remove('hidden'); });
+      document.getElementById('closeSignup').addEventListener('click', ()=> { signupModal.classList.add('hidden'); });
+
+      document.getElementById('toSignup').addEventListener('click', ()=> { loginModal.classList.add('hidden'); signupModal.classList.remove('hidden'); });
+      document.getElementById('toLogin').addEventListener('click', ()=> { signupModal.classList.add('hidden'); loginModal.classList.remove('hidden'); });
+
+      // login form
+      document.getElementById('loginForm').addEventListener('submit', ev=>{
+        ev.preventDefault();
+        const u = document.getElementById('loginUser').value.trim(), p = document.getElementById('loginPass').value.trim();
+        if(u==='demo' && p==='demo123'){ localStorage.setItem('loggedUser', u); document.getElementById('loginMsg').textContent='Login successful (demo)'; loginModal.classList.add('hidden'); }
+        else document.getElementById('loginMsg').textContent='Invalid demo credentials — try demo / demo123';
+      });
+
+      // signup
+      document.getElementById('signupForm').addEventListener('submit', ev=>{
+        ev.preventDefault();
+        localStorage.setItem('loggedUser', document.getElementById('signupEmail').value.trim());
+        document.getElementById('signupMsg').textContent='Account created (demo)';
+        setTimeout(()=> { signupModal.classList.add('hidden'); showSection('home'); }, 500);
+      });
+    });
+  </script>
+</body>
+</html>

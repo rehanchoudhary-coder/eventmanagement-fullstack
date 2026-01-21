@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventFlow - Modern Event Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        /* Your existing custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0A0920; 
+            color: #E0E0E0;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image:
+                radial-gradient(circle at 20% 20%, rgba(124, 58, 237, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(29, 78, 216, 0.15) 0%, transparent 40%);
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            z-index: 0;
+            opacity: 0.7;
+        }
+        .main-container { position: relative; z-index: 1; }
+        .text-gradient {
+            background: linear-gradient(to right, #818CF8, #C084FC);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+        }
+        .glass-card {
+            background: rgba(26, 24, 56, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+        }
+        .nav-link.active { color: white; font-weight: 600; }
+        .nav-link { transition: all 0.2s ease-in-out; }
+        .nav-link:hover { color: white; transform: translateX(4px); }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <div class="main-container min-h-screen flex flex-col lg:flex-row">
+        
+        <!-- Sidebar -->
+        <aside class="w-full lg:w-64 p-6 lg:p-8 lg:min-h-screen glass-card lg:rounded-r-2xl shadow-2xl z-10">
+            <!-- Logo -->
+            <div class="mb-12">
+                <h1 class="text-2xl font-bold text-white tracking-wider">Event<span class="text-purple-400">Flow</span></h1>
+            </div>
+
+            <!-- Mobile Menu Toggle -->
+            <div class="lg:hidden mb-4">
+                <button id="mobile-menu-btn" class="text-white focus:outline-none" aria-label="Open menu">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+
+            <!-- Nav Links -->
+            <nav id="nav-menu" class="hidden lg:block">
+                <ul class="space-y-6">
+                    <li><a href="#" class="nav-link active text-lg font-medium text-white">Home</a></li>
+                    <li><a href="#events" class="nav-link text-lg font-medium text-gray-400">Events</a></li>
+                    <li><a href="#about" class="nav-link text-lg font-medium text-gray-400">About</a></li>
+                    <li><a href="#contact" class="nav-link text-lg font-medium text-gray-400">Contact</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 lg:p-12">
+            
+            <!-- Header -->
+            <header class="flex justify-end items-center mb-12">
+                <div class="flex items-center space-x-4">
+                    <input type="text" id="search-input" placeholder="Search events..." class="hidden md:block bg-gray-800 border border-gray-700 text-white rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <button id="login-btn" class="bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium py-2 px-6 rounded-full shadow-lg hover:from-purple-700 hover:to-blue-700 transition duration-300">
+                        Login
+                    </button>
+                </div>
+            </header>
+
+            <!-- Hero Section -->
+            <section class="flex flex-col lg:flex-row items-center justify-between gap-12 text-center lg:text-left">
+                <!-- Text Content -->
+                <div class="lg:w-1/2">
+                    <h2 class="text-5xl md:text-7xl font-extrabold text-white leading-tight">
+                        Experience
+                        <span class="text-gradient">Beyond</span>
+                        Imagination
+                    </h2>
+                    <p class="mt-6 text-lg text-gray-300 max-w-lg mx-auto lg:mx-0">
+                        Discover and book exclusive events, from virtual concerts to tech conferences. Your next unforgettable experience is just a click away.
+                    </p>
+                    <button class="mt-10 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold py-4 px-10 rounded-full shadow-2xl text-lg hover:scale-105 transform transition duration-300 ease-in-out">
+                        Explore Now
+                    </button>
+                </div>
+
+                <!-- Image/Graphic Content -->
+                <div class="lg:w-1/2 flex justify-center items-center relative">
+                    <div class="w-80 h-80 md:w-96 md:h-96 relative">
+                        <img 
+                            src="manager.png" 
+                            alt="Holographic figure placeholder"
+                            class="w-full h-full object-cover rounded-full opacity-70"
+                            style="filter: drop-shadow(0 0 2rem rgba(192, 132, 252, 0.6));"
+                            onerror="this.src='https://placehold.co/400x400/1A1838/FFFFFF?text=Image+Error'"
+                        >
+                        <div class="absolute inset-0 border-2 border-blue-400/30 rounded-full animate-pulse" style="animation-duration: 4s;"></div>
+                        <div class="absolute inset-4 border border-purple-400/30 rounded-full animate-pulse" style="animation-duration: 3s; animation-delay: 1s;"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- *** UPDATED: Upcoming Events Section *** -->
+            <section id="events" class="mt-24">
+                <h3 class="text-4xl font-bold text-white text-center mb-12">Upcoming Events</h3>
+                <!-- The event cards will be injected here by JavaScript -->
+                <div id="event-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- 
+                        Event cards are now loaded dynamically from Firebase.
+                        If this section is empty, go to your admin.html panel and add an event.
+                    -->
+                    <p id="events-loading" class="text-gray-400 text-center col-span-3">Loading events from the database...</p>
+                </div>
+            </section>
+            <!-- *** END OF UPDATED SECTION *** -->
+
+
+            <!-- About Section -->
+            <section id="about" class="mt-24">
+                <h3 class="text-4xl font-bold text-white text-center mb-12">About EventFlow</h3>
+                <div class="glass-card rounded-2xl p-8 max-w-4xl mx-auto">
+                    <p class="text-lg text-gray-300 leading-relaxed">
+                        We built EventFlow on a simple idea: booking an event should be as inspiring as attending one.
+                    </p>
+                    <p class="text-lg text-gray-300 leading-relaxed mt-4">
+                        In a world full of noise, we provide a clean, modern, and seamless platform to help you discover and book the events that matter. Whether it's a cutting-edge tech conference, an immersive art exhibit, or a virtual-reality concert, we are your curated ticket to the future.
+                    </p>
+                    <p class="text-lg text-gray-300 leading-relaxed mt-4">
+                        We handle the logistics so you can focus on the experience. Welcome to the next generation of event management. Welcome to EventFlow.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Contact Section -->
+            <section id="contact" class="mt-24">
+                <h3 class="text-4xl font-bold text-white text-center mb-12">Contact Us</h3>
+                <div class="glass-card rounded-2xl p-8 max-w-2xl mx-auto text-center">
+                    <p class="text-lg text-gray-300 mb-4">Get in touch with us for any inquiries or support.</p>
+                    <div class="space-y-4">
+                        <div>
+                            <span class="text-purple-300 font-medium">Phone:</span>
+                            <span class="text-white ml-2">7208724024</span>
+                        </div>
+                        <div>
+                            <span class="text-purple-300 font-medium">Email:</span>
+                            <span class="text-white ml-2">rehan.choudhary@somaiya.edu</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Login/Register Modal -->
+    <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="glass-card rounded-2xl p-8 w-full max-w-md mx-4">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-white">Welcome</h3>
+                <button id="close-modal" class="text-gray-400 hover:text-white" aria-label="Close modal">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Tab Buttons -->
+            <div class="flex mb-6">
+                <button id="login-tab" class="flex-1 py-2 px-4 text-center text-white bg-purple-600 rounded-l-lg font-medium">Login</button>
+                <button id="register-tab" class="flex-1 py-2 px-4 text-center text-gray-400 bg-gray-700 rounded-r-lg font-medium">Register</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="login-email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                    <input type="email" id="login-email" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
+                    <input type="password" id="login-password" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                </div>
+
+                <button type="button" id="google-login-btn" class="w-full bg-white text-gray-800 font-medium py-2 px-4 rounded-lg border border-gray-300 hover:bg-gray-100 transition duration-300 flex items-center justify-center space-x-2">
+                    <svg class="w-5 h-5" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></svg>
+                    <span>Sign in with Google</span>
+                </button>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium py-2 px-4 rounded-lg hover:from-purple-700 hover:to-blue-700 transition duration-300">Login</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="space-y-4 hidden">
+                 <div>
+                    <label for="register-username" class="block text-sm font-medium text-gray-300 mb-1">Username</label>
+                    <input type="text" id="register-username" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                </div>
+                <div>
+                    <label for="register-email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                    <input type="email" id="register-email" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                </div>
+                <div>
+                    <label for="register-password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
+                    <input type="password" id="register-password" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                </div>
+                <div>
+                    <label for="register-confirm-password" class="block text-sm font-medium text-gray-300 mb-1">Confirm Password</label>
+                    <input type="password" id="register-confirm-password" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium py-2 px-4 rounded-lg hover:from-purple-700 hover:to-blue-700 transition duration-300">Register</button>
+            </form>
+
+            <div id="error-message" class="mt-4 text-red-400 text-sm hidden"></div>
+        </div>
+    </div>
+
+    <!-- Booking Modal (UPDATED with Rupees) -->
+    <div id="booking-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="glass-card rounded-2xl p-8 w-full max-w-md mx-4">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-white">Book Event: <span id="event-title"></span></h3>
+                <button id="close-booking-modal" class="text-gray-400 hover:text-white" aria-label="Close booking modal">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Booking Form (UPDATED with Rupees) -->
+            <form id="booking-form" class="space-y-4">
+                <div>
+                    <label for="booking-name" class="block text-sm font-medium text-gray-300 mb-1">Full Name</label>
+                    <input type="text" id="booking-name" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white" required>
+                </div>
+                <div>
+                    <label for="booking-phone" class="block text-sm font-medium text-gray-300 mb-1">Phone Number</label>
+                    <input type="tel" id="booking-phone" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white" required>
+                </div>
+                <div>
+                    <label for="booking-email" class="block text-sm font-medium text-gray-300 mb-1">Email ID</label>
+                    <input type="email" id="booking-email" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white" required>
+                </div>
+                <div>
+                    <label for="booking-whatsapp" class="block text-sm font-medium text-gray-300 mb-1">WhatsApp Number</label>
+                    <input type="tel" id="booking-whatsapp" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white" required>
+                </div>
+                <div>
+                    <label for="booking-attendees" class="block text-sm font-medium text-gray-300 mb-1">Number of Attendees</label>
+                    <input type="number" id="booking-attendees" min="1" value="1" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white" required>
+                </div>
+
+                <div>
+                    <label for="booking-payment-mode" class="block text-sm font-medium text-gray-300 mb-1">Payment Mode</label>
+                    <select id="booking-payment-mode" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white" required>
+                        <option value="">Select a payment mode</option>
+                        <option value="credit_card">Credit Card</option>
+                        <option value="paypal">PayPal</option>
+                        <option value="upi">UPI / Google Pay</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="booking-message" class="block text-sm font-medium text-gray-300 mb-1">Additional Message (Optional)</label>
+                    <textarea id="booking-message" rows="3" class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white"></textarea>
+                </div>
+
+                <!-- Total Price Display (UPDATED with Rupees) -->
+                <div class="my-4 text-center">
+                    <span class="text-lg text-gray-400">Total Price:</span>
+                    <span id="total-price-display" class="text-3xl font-bold text-white">₹0.00</span>
+                </div>
+                
+                <button type="submit" id="submit-booking-btn" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium py-2 px-4 rounded-lg">Submit Booking</button>
+            </form>
+
+            <div id="booking-error-message" class="mt-4 text-red-400 text-sm hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- ALL JAVASCRIPT ---
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBtSTnhfpnETChEwEWz47fB3OVDlTxohD8", 
+            authDomain: "eventflow-app-52e44.firebaseapp.com",
+            projectId: "eventflow-app-52e44",
+            storageBucket: "eventflow-app-52e44.firebasestorage.app",
+            messagingSenderId: "302829932249",
+            appId: "1:302829932249:web:4af9f62236b7a5593678c8",
+            measurementId: "G-TFZG8DN5Y0"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        console.log("Firebase Initialized!");
+
+        // Get references to Firebase services
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // --- Get All DOM Elements ---
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const navMenu = document.getElementById('nav-menu');
+        
+        const loginBtn = document.getElementById('login-btn');
+        const authModal = document.getElementById('auth-modal');
+        const closeModal = document.getElementById('close-modal');
+        const loginTab = document.getElementById('login-tab');
+        const registerTab = document.getElementById('register-tab');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const errorMessage = document.getElementById('error-message');
+        
+        const bookingModal = document.getElementById('booking-modal');
+        const closeBookingModal = document.getElementById('close-booking-modal');
+        const bookingForm = document.getElementById('booking-form');
+        const eventTitle = document.getElementById('event-title');
+        const bookingErrorMessage = document.getElementById('booking-error-message');
+        
+        const eventGrid = document.getElementById('event-grid'); // Container for dynamic events
+        const eventsLoading = document.getElementById('events-loading');
+        
+        const attendeesInput = document.getElementById('booking-attendees');
+        const totalPriceDisplay = document.getElementById('total-price-display');
+        let currentEventPrice = 0; // To store the price of the event
+
+        // --- Auth Functionality ---
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                console.log("User is logged in:", user.displayName || user.email);
+                updateLoginButton(user.displayName || user.email);
+            } else {
+                console.log("User is logged out.");
+                loginBtn.textContent = 'Login';
+                loginBtn.disabled = false;
+                loginBtn.classList.remove('cursor-not-allowed');
+                loginBtn.style.opacity = '1';
+                loginBtn.onclick = showLoginModal; // Reset click to open modal
+            }
+        });
+
+        function updateLoginButton(username) {
+            loginBtn.textContent = `Logout (${username.split('@')[0]})`;
+            loginBtn.disabled = false;
+            loginBtn.classList.remove('cursor-not-allowed');
+            loginBtn.style.opacity = '1';
+            loginBtn.onclick = () => { // Set click to logout
+                auth.signOut().catch((error) => console.error('Logout error:', error));
+            };
+        }
+
+        function showLoginModal() {
+            authModal.classList.remove('hidden');
+        }
+
+        loginBtn.addEventListener('click', () => {
+             if (loginBtn.textContent.includes('Login')) {
+                showLoginModal();
+            }
+        });
+
+        closeModal.addEventListener('click', () => authModal.classList.add('hidden'));
+        authModal.addEventListener('click', (e) => {
+            if (e.target === authModal) authModal.classList.add('hidden');
+        });
+
+        loginTab.addEventListener('click', () => {
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+            loginTab.classList.add('bg-purple-600', 'text-white');
+            loginTab.classList.remove('bg-gray-700', 'text-gray-400');
+            registerTab.classList.add('bg-gray-700', 'text-gray-400');
+            registerTab.classList.remove('bg-purple-600', 'text-white');
+        });
+
+        registerTab.addEventListener('click', () => {
+            registerForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+            registerTab.classList.add('bg-purple-600', 'text-white');
+            registerTab.classList.remove('bg-gray-700', 'text-gray-400');
+            loginTab.classList.add('bg-gray-700', 'text-gray-400');
+            loginTab.classList.remove('bg-purple-600', 'text-white');
+        });
+
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
+
+            if (password !== confirmPassword) {
+                errorMessage.textContent = 'Passwords do not match.';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    return userCredential.user.updateProfile({
+                        displayName: username
+                    }).then(() => {
+                        authModal.classList.add('hidden');
+                        registerForm.reset();
+                        console.log('Registration successful!');
+                    });
+                })
+                .catch((error) => {
+                    errorMessage.textContent = error.message;
+                    errorMessage.classList.remove('hidden');
+                });
+        });
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    authModal.classList.add('hidden');
+                    loginForm.reset();
+                    console.log('Login successful!');
+                })
+                .catch((error) => {
+                    errorMessage.textContent = 'Invalid email or password.';
+                    errorMessage.classList.remove('hidden');
+                });
+        });
+
+        document.getElementById('google-login-btn').addEventListener('click', () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    authModal.classList.add('hidden');
+                    console.log(`Welcome, ${result.user.displayName}!`);
+                })
+                .catch((error) => {
+                    errorMessage.textContent = error.message;
+                    errorMessage.classList.remove('hidden');
+                });
+        });
+
+        // --- *** NEW: DYNAMIC EVENT LOADING *** ---
+
+        function listenForEvents() {
+            // Listen to the 'events' collection
+            db.collection('events').onSnapshot((snapshot) => {
+                eventGrid.innerHTML = ''; // Clear the grid
+                
+                if (snapshot.empty) {
+                    eventsLoading.textContent = 'No events found. Check back soon!';
+                    return;
+                }
+                
+                eventsLoading.style.display = 'none'; // Hide "loading" message
+
+                snapshot.docs.forEach(doc => {
+                    const event = doc.data();
+                    
+                    // Create the HTML for the card
+                    const cardHtml = `
+                        <div class="glass-card rounded-2xl overflow-hidden shadow-lg transform hover:scale-105 transition duration-300">
+                            <img src="${event.imageUrl}" alt="${event.name}" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/1A1838/FFFFFF?text=Image+Error'">
+                            <div class="p-6">
+                                <h4 class="text-2xl font-bold text-white mb-2">${event.name}</h4>
+                                <!-- Display price in Rupees -->
+                                <p class="text-purple-300 text-sm mb-4">${event.date} | <span class="text-green-400 font-bold">₹${event.price}</span></p>
+                                <p class="text-gray-300 mb-6">${event.description}</p>
+                                <button class="w-full bg-purple-600 text-white font-medium py-3 px-6 rounded-full hover:bg-purple-700 transition duration-300 book-now-btn" 
+                                    data-event="${event.name}" data-price="${event.price}">
+                                    Book Now
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    eventGrid.insertAdjacentHTML('beforeend', cardHtml);
+                });
+            }, (error) => {
+                console.error("Error fetching events: ", error);
+                eventsLoading.textContent = 'Error loading events.';
+            });
+        }
+        
+        // Start listening for events when the page loads
+        listenForEvents();
+
+
+        // --- Booking Modal & Pricing (UPDATED) ---
+
+        // NEW: Event Delegation for "Book Now" buttons
+        // This listens for clicks on the grid, even for buttons added later
+        eventGrid.addEventListener('click', (e) => {
+            // Check if the clicked element is a book-now-btn
+            if (e.target.classList.contains('book-now-btn')) {
+                const eventName = e.target.getAttribute('data-event');
+                const price = e.target.getAttribute('data-price');
+                
+                currentEventPrice = parseFloat(price) || 0; // Store the price
+                
+                eventTitle.textContent = eventName; // Set modal title
+                
+                bookingForm.reset(); // Reset form fields
+                attendeesInput.value = 1; // Default to 1 attendee
+                updateTotalPrice(); // Calculate initial total
+                
+                bookingModal.classList.remove('hidden'); // Show the modal
+                bookingErrorMessage.classList.add('hidden'); // Hide any old errors
+            }
+        });
+
+        closeBookingModal.addEventListener('click', () => bookingModal.classList.add('hidden'));
+        bookingModal.addEventListener('click', (e) => {
+            if (e.target === bookingModal) bookingModal.classList.add('hidden');
+        });
+
+        // Listen for changes on the attendees input
+        attendeesInput.addEventListener('input', updateTotalPrice);
+
+        function updateTotalPrice() {
+            const attendees = parseInt(attendeesInput.value) || 0;
+            const total = attendees * currentEventPrice;
+            totalPriceDisplay.textContent = `₹${total.toFixed(2)}`; // Use Rupees symbol
+        }
+
+        // Booking form submission (UPDATED with Rupees and payment info)
+        bookingForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Get all values from the form
+            const name = document.getElementById('booking-name').value;
+            const phone = document.getElementById('booking-phone').value;
+            const email = document.getElementById('booking-email').value;
+            const whatsapp = document.getElementById('booking-whatsapp').value;
+            const attendees = document.getElementById('booking-attendees').value;
+            const message = document.getElementById('booking-message').value;
+            const paymentMode = document.getElementById('booking-payment-mode').value;
+            const totalCost = (parseInt(attendees) || 0) * currentEventPrice;
+
+            // Simple validation
+            if (!name || !phone || !email || !whatsapp || !attendees || !paymentMode) {
+                bookingErrorMessage.textContent = 'Please fill in all required fields, including payment mode.';
+                bookingErrorMessage.classList.remove('hidden');
+                return;
+            }
+
+            // Create the booking object to save to Firestore
+            const booking = {
+                event: eventTitle.textContent,
+                name: name,
+                phone: phone,
+                email: email,
+                whatsapp: whatsapp,
+                attendees: parseInt(attendees),
+                message: message,
+                timestamp: new Date().toISOString(),
+                paymentMode: paymentMode,
+                pricePerAttendee: currentEventPrice,
+                totalCost: totalCost,
+                paymentStatus: 'pending' // We'll update this after payment
+            };
+
+            // Add user ID if they are logged in
+            if (auth.currentUser) {
+                booking.userId = auth.currentUser.uid;
+                booking.userEmail = auth.currentUser.email;
+            } else {
+                booking.userId = 'guest';
+            }
+
+            // Save to the 'bookings' collection in Firestore
+            db.collection("bookings").add(booking)
+                .then((docRef) => {
+                    console.log("Booking saved with ID: ", docRef.id);
+                    bookingModal.classList.add('hidden');
+                    bookingForm.reset();
+                    alert('Booking submitted successfully! You will be contacted for payment.'); // Use alert for success
+                })
+                .catch((error) => {
+                    console.error("Error saving booking: ", error);
+                    bookingErrorMessage.textContent = "Error: " + error.message;
+                    bookingErrorMessage.classList.remove('hidden');
+                });
+        });
+
+        // --- Other UI Functions ---
+        
+        // Mobile menu toggle
+        if (menuBtn) {
+            menuBtn.addEventListener('click', () => {
+                navMenu.classList.toggle('hidden');
+            });
+        }
+
+        // Smooth scroll for nav links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+        
+        // Search functionality (UPDATED to work with dynamic cards)
+        const searchInput = document.getElementById('search-input');
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const allCards = eventGrid.querySelectorAll('.glass-card'); // Get all cards
+
+            allCards.forEach(card => {
+                // Read text content from the card
+                const title = card.querySelector('h4').textContent.toLowerCase();
+                const description = card.querySelector('p:nth-of-type(2)').textContent.toLowerCase();
+                const date = card.querySelector('p:nth-of-type(1)').textContent.toLowerCase();
+
+                const matches = title.includes(searchTerm) || description.includes(searchTerm) || date.includes(searchTerm);
+
+                // Show or hide the card based on match
+                if (matches || searchTerm === '') {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
+
